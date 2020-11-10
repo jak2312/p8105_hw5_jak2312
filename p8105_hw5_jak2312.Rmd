@@ -10,6 +10,7 @@ library(tidyverse)
 
 ## Problem 1
 
+Read and clean df
 ```{r}
 homicide_df = 
   read_csv("./data/homicide-data.csv") %>% 
@@ -21,17 +22,35 @@ homicide_df =
     ),
     city_state = str_c(city, state, sep = "_")
   ) %>% 
-  select(city_state, resolved)
+  select(city_state, resolved) %>% 
+  filter(city_state != "Tulsa_AL")
 ```
 
-
+create aggregate df
 ```{r}
-homicide_df %>% 
-  group_by(city_state) %>% 
-  summarize(
-    hom_total = n(),
-    hom_unsolved = sum(resolved == "unsolved"),
-    hom_solved = sum(resolved == "solved")
-  )
+aggregate_df = 
+  homicide_df %>% 
+    group_by(city_state) %>% 
+    summarize(
+      hom_total = n(),
+      hom_unsolved = sum(resolved == "unsolved")
+    ) 
+```
+
+run prop test for 1 city
+```{r}
+prop.test(
+  aggregate_df %>% filter(city_state == "Baltimore_MD") %>% pull(hom_unsolved),
+  aggregate_df %>% filter(city_state == "Baltimore_MD") %>% pull(hom_total)
+) %>% broom::tidy()
+```
+
+itterate over all the cities
+```{r}
+aggregate_df %>% 
+  mutate(
+    prop_test = map2(.x = hom_unsolved, .y = hom_total, ~prop.test(x = .x, n = .y)),
+    tidy_test = map(prop_test, ~broom::tidy)
+  ) %>% pull(tidy_test)
 ```
 
