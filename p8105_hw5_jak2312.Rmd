@@ -47,10 +47,25 @@ prop.test(
 
 itterate over all the cities
 ```{r}
-aggregate_df %>% 
-  mutate(
-    prop_test = map2(.x = hom_unsolved, .y = hom_total, ~prop.test(x = .x, n = .y)),
-    tidy_test = map(prop_test, ~broom::tidy)
-  ) %>% pull(tidy_test)
+results_df = 
+  aggregate_df %>% 
+    mutate(
+      prop_test = map2(.x = hom_unsolved, .y = hom_total, ~prop.test(x = .x, n = .y)),
+      tidy_test = map(prop_test, broom::tidy)
+    ) %>% 
+    select(-prop_test) %>% 
+    unnest(tidy_test) %>% 
+    select(city_state, estimate, conf.low, conf.high)
 ```
+
+Arrange by estimate
+```{r}
+results_df %>% 
+  mutate(city_state = fct_reorder(city_state, estimate)) %>% 
+  ggplot(aes(x = city_state, y = estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high)) + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+```
+
 
