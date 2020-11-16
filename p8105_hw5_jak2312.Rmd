@@ -76,11 +76,12 @@ study_data = tibble(
     subject_data = map(str_c("./data/longitudinal_study/", filename), read.csv)
   ) %>% 
   separate(filename, into = c("arm", "subject_id"), sep = "_") %>% 
-  mutate(subject_id = str_replace(subject_id, ".csv", ""))
+  mutate(subject_id = str_replace(subject_id, ".csv", ""),
+         subject_id = as.numeric(subject_id),
+         subject_id = ifelse(str_detect(arm, "exp"), subject_id + 10, subject_id))
 ```
 
 ```{r tidy_df}
-
 pat_data_long = function(df){
   df %>% pivot_longer(week_1:week_8,
                       names_to = "week",
@@ -95,6 +96,17 @@ for(i in 1:20){
 study_data
 study_data$subject_data[[1]]
 ```
+
+```{r plot_data_vs_week}
+
+study_data %>% 
+  unnest(subject_data) %>% 
+  ggplot(aes(x = week, y = data, group = subject_id)) +
+  geom_line(aes(color = arm))
+
+```
+
+We can see that subjects in both the experimental arm and control arm have points that fluctuate throughout the 8 weeks. However, we can observe a general upwards trend in the experimental arm which can indicate that the treatment these subjects are getting is influencing the data. The control arm data fluctuates heavily but there does not appear to be an overall change in the output reading. 
 
 ## Problem 3
 
