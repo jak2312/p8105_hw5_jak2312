@@ -13,7 +13,7 @@ library(tidyverse)
 Read and clean df
 ```{r}
 homicide_df = 
-  read_csv("./data/homicide-data.csv") %>% 
+  read_csv("./data/homicide/homicide-data.csv") %>% 
   mutate(
     resolved = case_when(
       disposition == "Closed without arrest" ~ "unsolved",
