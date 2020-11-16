@@ -68,4 +68,39 @@ results_df %>%
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
+## Problem 2
+
+```{r read_combine_df}
+study_data = tibble(
+    filename = list.files("./data/longitudinal_study/"),
+    subject_data = map(str_c("./data/longitudinal_study/", filename), read.csv)
+  ) %>% 
+  separate(filename, into = c("arm", "subject_id"), sep = "_") %>% 
+  mutate(subject_id = str_replace(subject_id, ".csv", ""))
+```
+
+```{r tidy_df}
+
+pat_data_long = function(df){
+  df %>% pivot_longer(week_1:week_8,
+                      names_to = "week",
+                      names_prefix = "week_",
+                      values_to = "data")
+}
+
+for(i in 1:20){
+  study_data$subject_data[[i]] = pat_data_long(study_data$subject_data[[i]])
+}
+
+study_data
+study_data$subject_data[[1]]
+```
+
+## Problem 3
+
+```{r}
+
+```
+
+
 
